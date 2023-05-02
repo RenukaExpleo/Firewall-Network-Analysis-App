@@ -7,6 +7,9 @@ import joblib
 import networkx as nx
 from lightgbm import LGBMClassifier
 import os
+import time
+# import fcntl
+# from gunicorn import util
 
 print("this is current directory :", os.getcwd())
 
@@ -174,6 +177,7 @@ def preprocess(feature_vector):
 # @app.route('/index')
 @app.route('/')
 def index():
+    time.sleep(10)
     return flask.render_template('index.html')
 
 
@@ -197,4 +201,22 @@ def predict():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
+    # app.run(host='0.0.0.0', port=8080)
+    # app.run(debug=True, port=8080, host='0.0.0.0')
+    from werkzeug.serving import make_server
+    server = make_server('0.0.0.0', 8080, app)
+
+    def shutdown_server():
+        print('Shutting down server...')
+        server.shutdown()
+
+    # shutdown server after 120 seconds
+    import threading
+    shutdown_thread = threading.Timer(120.0, shutdown_server)
+    shutdown_thread.start()
+
+    try:
+        print('Starting server...')
+        server.serve_forever()
+    except KeyboardInterrupt:
+        shutdown_server()
